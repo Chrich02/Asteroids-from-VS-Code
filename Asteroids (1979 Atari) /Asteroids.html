@@ -38,7 +38,7 @@
         let MUSIC_ON = true;
         let SHOW_SOUND_SETTINGS_TEXT; // show the settings for toggling the sound on and off
         const TEXT_FADE_TIME_LVL = 2.5; // text fade time in seconds
-        const TEXT_FADE_TIME_SND = 5.0; // sound settings text fade time in seconds
+        const TEXT_FADE_TIME_SND = 5.0; // sound settings text fade time in seconds2
         const TEXT_SIZE = 40; // text font height in pixels
 
         /** @type {HTMLCanvasElement} */
@@ -172,12 +172,16 @@
                     break;
                 case 37: // left arrow (rotate ship left)
                     ship.rot = SHIP_TURN_SPD / 180 * Math.PI / FPS;
+                    ship.thrustingLeft = true;
                     break;
                 case 38: // up arrow (thrust the ship forward)
+                    ship.thrustingLeft = true;
+                    ship.thrustingRight = true;
                     ship.thrusting = true;
                     break;
                 case 39: // right arrow (rotate ship right)
                     ship.rot = -SHIP_TURN_SPD / 180 * Math.PI / FPS;
+                    ship.thrustingRight = true;
                     break;
                 case 77: // Key M (mute)
                     SOUND_ON = !SOUND_ON;
@@ -202,12 +206,17 @@
                     break;
                 case 37: // left arrow (stop rotating left)
                     ship.rot = 0;
+                    ship.thrustingLeft = false;
                     break;
                 case 38: // up arrow (stop thrusting)
+                    ship.thrustingLeft = false;
+                    ship.thrustingRight = false;
                     ship.thrusting = false;
+                    
                     break;
                 case 39: // right arrow (stop rotating right)
                     ship.rot = 0;
+                    ship.thrustingRight = false;
                     break;
             }
         }
@@ -272,6 +281,8 @@
                 lasers: [],
                 rot: 0,
                 thrusting: false,
+                thrustingLeft: false,
+                thrustingRight: false,
                 thrust: {
                     x: 0,
                     y: 0
@@ -401,6 +412,67 @@
                 }
             }
             
+                // thrust the ship left (right side thrust)
+
+            if (ship.thrustingLeft && !ship.dead) {
+                ship.thrust.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
+                ship.thrust.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
+                fxThrust.play();
+
+                // draw the left thruster
+                if (!exploding && blinkOn) {
+                    ctx.fillStyle = "red";
+                    ctx.strokeStyle = "yellow";
+                    ctx.lineWidth = SHIP_SIZE / 15;
+                    ctx.beginPath();
+                    ctx.moveTo( // rear left
+                        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.1 * Math.sin(ship.a)),
+                        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.1 * Math.cos(ship.a))
+                    );
+                    ctx.lineTo( // rear centre (behind the ship)
+                        ship.x - ship.r * 5 / 3 * Math.cos(ship.a) * 0.7,
+                        ship.y + ship.r * 5 / 3 * Math.sin(ship.a) * 0.7
+                    );
+                    ctx.lineTo( // rear right
+                        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.9 * Math.sin(ship.a)),
+                        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + 0.9 * Math.cos(ship.a))
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+
+            // thrust the ship right (left side thrust) TBA upon successful turn left applicaiton
+
+            if (ship.thrustingRight && !ship.dead) {
+                ship.thrust.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
+                ship.thrust.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
+                fxThrust.play();
+
+                // draw the left thruster
+                if (!exploding && blinkOn) {
+                    ctx.fillStyle = "red";
+                    ctx.strokeStyle = "yellow";
+                    ctx.lineWidth = SHIP_SIZE / 15;
+                    ctx.beginPath();
+                    ctx.moveTo( // rear left
+                        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.9 * Math.sin(ship.a)),
+                        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.9 * Math.cos(ship.a))
+                    );
+                    ctx.lineTo( // rear centre (behind the ship)
+                        ship.x - ship.r * 5 / 3 * Math.cos(ship.a) * 0.7,
+                        ship.y + ship.r * 5 / 3 * Math.sin(ship.a) * 0.7
+                    );
+                    ctx.lineTo( // rear right
+                        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.1 * Math.sin(ship.a)),
+                        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + 0.1 * Math.cos(ship.a))
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
             // thrust the ship
             if (ship.thrusting && !ship.dead) {
                 ship.thrust.x += SHIP_THRUST * Math.cos(ship.a) / FPS;
@@ -429,6 +501,7 @@
                     ctx.fill();
                     ctx.stroke();
                 }
+
             } else {
                 // apply friction (slow the ship down when not thrusting)
                 ship.thrust.x -= FRICTION * ship.thrust.x / FPS;
@@ -486,12 +559,13 @@
                 ctx.stroke();
             }
             
-            // show ship's centre dot
+            // show ship's centre dot (ship window trial)
             if (SHOW_CENTRE_DOT) {
-                ctx.fillStyle = "red";
-                ctx.fillRect(ship.x - 1, ship.y - 1, 2, 2);
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.arc(ship.x, ship.y, 2.5, 0, Math.PI * 2, false); // Increase '5' to make the dot bigger
+                ctx.fill();
             }
-
             // draw the lasers 
             for (var i= 0; i < ship.lasers.length; i++) {
                 if (ship.lasers[i].explodeTime == 0) {
