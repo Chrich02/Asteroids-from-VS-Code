@@ -33,7 +33,7 @@
         const SHIP_THRUST = 5; // acceleration of the ship in pixels per second per second
         const SHIP_TURN_SPD = 360; // turn speed in degrees per second
         const SHOW_BOUNDING = false; // show or hide collision bounding
-        const SHOW_CENTRE_DOT = false; // show or hide ship's centre dot
+        const SHOW_CENTRE_DOT = true; // show or hide ship's centre dot
         let SOUND_ON = true; 
         let MUSIC_ON = true;
         let SHOW_SOUND_SETTINGS_TEXT; // show the settings for toggling the sound on and off
@@ -560,7 +560,7 @@
             }
             
             // show ship's centre dot (ship window trial)
-            if (SHOW_CENTRE_DOT) {
+            if (SHOW_CENTRE_DOT && !ship.dead && blinkOn && !exploding) {
                 ctx.fillStyle = "white";
                 ctx.beginPath();
                 ctx.arc(ship.x, ship.y, 2.5, 0, Math.PI * 2, false); // Increase '5' to make the dot bigger
